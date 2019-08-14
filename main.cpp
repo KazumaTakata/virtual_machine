@@ -1,119 +1,69 @@
 #include <iostream>
+#include "./model.hpp"
+#include "./eval.hpp"
+#include <fstream>
+#include <string>
+#include <sstream>
+#include <algorithm>
+#include <iterator>
+#include <vector>
 
 using namespace std;
 
-typedef struct Registers
-{
-    int sp;
-    int ip;
-} Registers;
-
-enum INSTRUCTIONSET
-{
-    PUSH,
-    ADD,
-    SUB,
-    MUL,
-    DIV,
-    DEBUG,
-
-};
+// global variables {
 
 int *stack = new int[1024];
-
-int instructions[] = {
+Registers *registers = new Registers();
+vector<int> instructions = {
     PUSH,
     1,
     PUSH,
     3,
     ADD,
-    DEBUG,
+    DUP,
+    CFUNTION,
+    0,
     PUSH,
     10,
     MUL,
-    DEBUG,
+    CFUNTION,
+    0,
 };
 
-Registers *registers = new Registers();
+// }
 
-void binaryOp(INSTRUCTIONSET op)
+void readAssemblyFile()
 {
-    int pop1 = stack[registers->sp--];
-    int pop2 = stack[registers->sp--];
-
-    int result;
-    switch (op)
+    std::ifstream file("./test/simpleCalc.asm");
+    if (file.is_open())
     {
-    case ADD:
-        result = pop1 + pop2;
-        break;
-    case SUB:
-        result = pop1 - pop2;
-        break;
-    case MUL:
-        result = pop1 * pop2;
-        break;
-    case DIV:
-        result = pop1 / pop2;
-        break;
+        std::string line;
+        while (getline(file, line))
+        {
+            istringstream iss(line);
+            for (string s; iss >> s;)
+            {
 
-    default:
-        break;
+                // cout << s;
+                // cout << "\n";
+            }
+            // using printf() in all tests for consistency
+        }
+        file.close();
     }
-    registers->sp++;
-    stack[registers->sp] = result;
 }
 
 int main()
 {
-    registers->sp = -1;
-    registers->ip = 0;
-
-    size_t sizeOfInstruction = sizeof(instructions) / sizeof(instructions[0]);
+    initRegisters(registers);
+    readAssemblyFile();
 
     bool stop = false;
     while (!stop)
     {
+        eval();
 
-        switch (instructions[registers->ip])
-        {
-        case PUSH:
-            registers->ip++;
-            registers->sp++;
-            stack[registers->sp] = instructions[registers->ip];
-            break;
-        case ADD:
-        {
-            binaryOp(ADD);
-            break;
-        }
-        case MUL:
-        {
-            binaryOp(MUL);
-            break;
-        }
-        case SUB:
-        {
-            binaryOp(SUB);
-            break;
-        }
-        case DIV:
-        {
-            binaryOp(DIV);
-            break;
-        }
-        case DEBUG:
-        {
-            int topValue = stack[registers->sp];
-            cout << topValue << "\n";
-            break;
-        }
-        default:
-            break;
-        }
-
-        registers->ip++;
-        if (registers->ip > sizeOfInstruction)
+        if (registers->ip >= instructions.size())
         {
             stop = true;
         }
