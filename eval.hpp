@@ -91,7 +91,7 @@ void eval()
         stack[registers->sp] = topValue;
         break;
     }
-    case CFUNTION:
+    case CFUNCTION:
     {
         registers->ip++;
         C_FUNCTION cfunctionID = (C_FUNCTION)instructions.at(registers->ip);
