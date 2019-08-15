@@ -48,7 +48,27 @@ void binaryOp(INSTRUCTIONSET op)
     case DIV:
         result = pop1 / pop2;
         break;
-
+    case LT:
+        result = pop1 < pop2;
+        break;
+    case GT:
+        result = pop1 > pop2;
+        break;
+    case LE:
+        result = pop1 <= pop2;
+        break;
+    case GE:
+        result = pop1 >= pop2;
+        break;
+    case EQ:
+        result = pop1 == pop2;
+        break;
+    case AND:
+        result = pop1 && pop2;
+        break;
+    case OR:
+        result = pop1 || pop2;
+        break;
     default:
         break;
     }
@@ -56,51 +76,48 @@ void binaryOp(INSTRUCTIONSET op)
     stack[registers->sp] = result;
 }
 
-void eval()
+void eval(StackFrame *stackFrame)
 {
+
     switch (instructions.at(registers->ip))
     {
     case PUSH:
-        registers->ip++;
-        registers->sp++;
-        stack[registers->sp] = instructions.at(registers->ip);
+        stack[++registers->sp] = instructions.at(++registers->ip);
         break;
-    case ADD:
-    {
-        binaryOp(ADD);
-        break;
-    }
-    case MUL:
-    {
-        binaryOp(MUL);
-        break;
-    }
-    case SUB:
-    {
-        binaryOp(SUB);
-        break;
-    }
-    case DIV:
-    {
-        binaryOp(DIV);
-        break;
-    }
+
     case DUP:
     {
         int topValue = stack[registers->sp++];
         stack[registers->sp] = topValue;
         break;
     }
+
     case CFUNCTION:
     {
         registers->ip++;
         C_FUNCTION cfunctionID = (C_FUNCTION)instructions.at(registers->ip);
 
         evalCFunction(cfunctionID);
-    }
-    break;
-    default:
         break;
+    }
+    case STORE:
+    {
+        int offset = instructions.at(++registers->ip);
+        stackFrame->localStack[offset] = stack[registers->sp--];
+        break;
+    }
+    case LOAD:
+    {
+        int offset = instructions.at(++registers->ip);
+        stack[++registers->sp] = stackFrame->localStack[offset];
+        break;
+    }
+    default:
+    {
+        INSTRUCTIONSET instruction = (INSTRUCTIONSET)instructions.at(registers->ip);
+        binaryOp(instruction);
+        break;
+    }
     }
 
     registers->ip++;

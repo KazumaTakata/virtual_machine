@@ -39,12 +39,15 @@ int main()
 {
     initInstructionSetMap();
     initRegisters(registers);
-    readAssemblyFile("./test/simpleCalc.asm");
+    readAssemblyFile("./test/localvariable.asm");
+
+    StackFrame *globalStackFrame = new StackFrame();
+    globalStackFrame->localStack = new int[1024];
 
     bool stop = false;
     while (!stop)
     {
-        eval();
+        eval(globalStackFrame);
 
         if (registers->ip >= instructions.size())
         {

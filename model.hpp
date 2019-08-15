@@ -17,6 +17,12 @@ void initRegisters(Registers *registers)
     registers->ip = 0;
 }
 
+typedef struct StackFrame
+{
+    int *localStack;
+
+} StackFrame;
+
 enum INSTRUCTIONSET
 {
     PUSH,
@@ -27,7 +33,14 @@ enum INSTRUCTIONSET
     DUP,
     CFUNCTION,
     LT,
-    GT
+    GT,
+    EQ,
+    AND,
+    OR,
+    LE,
+    GE,
+    LOAD,
+    STORE,
 };
 
 map<string, INSTRUCTIONSET> instructionSetMap;
@@ -43,6 +56,13 @@ void initInstructionSetMap()
     instructionSetMap.insert({"CFUNCTION", CFUNCTION});
     instructionSetMap.insert({"LT", LT});
     instructionSetMap.insert({"GT", GT});
+    instructionSetMap.insert({"EQ", EQ});
+    instructionSetMap.insert({"OR", OR});
+    instructionSetMap.insert({"AND", AND});
+    instructionSetMap.insert({"LE", LE});
+    instructionSetMap.insert({"GE", GE});
+    instructionSetMap.insert({"LOAD", LOAD});
+    instructionSetMap.insert({"STORE", STORE});
 }
 
 enum C_FUNCTION
