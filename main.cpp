@@ -8,12 +8,13 @@
 #include <iterator>
 #include <vector>
 #include "readFile.hpp"
+#include "Stack.hpp"
 
 using namespace std;
 
 // global variables {
 
-Object *Stack = new Object[1024];
+Stack *OPstack = new Stack(1024);
 Registers *registers = new Registers();
 vector<InstructionObj> instructions = {};
 StackFramePool stackframepool = StackFramePool();

@@ -11,11 +11,12 @@ using namespace std;
 
 class Object
 {
+
+public:
     VALUETYPE type;
     string strValue;
     int intValue;
 
-public:
     void print()
     {
         if (type == STRING)

@@ -4,12 +4,13 @@
 #include <iostream>
 #include "./model.hpp"
 #include "./object.hpp"
+#include "Stack.hpp"
 #include <vector>
 
 using namespace std;
 
 extern Registers *registers;
-extern Object *Stack;
+extern Stack *OPstack;
 extern vector<InstructionObj> instructions;
 extern StackFramePool stackframepool;
 
@@ -19,7 +20,7 @@ void evalCFunction(C_FUNCTION cfunctionID)
     {
     case Cprintln:
     {
-        Object popedValue = Stack[registers->sp--];
+        Object popedValue = OPstack->pop();
         popedValue.print();
         cout << "\n";
 
@@ -32,8 +33,8 @@ void evalCFunction(C_FUNCTION cfunctionID)
 
 void binaryOp(INSTRUCTIONSET op)
 {
-    Object pop1 = Stack[registers->sp--];
-    Object pop2 = Stack[registers->sp--];
+    Object pop1 = OPstack->pop();
+    Object pop2 = OPstack->pop();
 
     Object result;
     switch (op)
@@ -75,7 +76,7 @@ void binaryOp(INSTRUCTIONSET op)
         break;
     }
     registers->sp++;
-    Stack[registers->sp] = result;
+    OPstack->push(result);
 }
 
 void eval(StackFrame *stackFrame)
@@ -85,13 +86,26 @@ void eval(StackFrame *stackFrame)
     switch (instructions.at(registers->ip).instruction)
     {
     case PUSH:
-        Stack[++registers->sp] = instructions.at(++registers->ip);
-        break;
+    {
+        InstructionObj instobj = instructions.at(++registers->ip);
+        Object obj = Object();
+        if (instobj.type == STRING)
+        {
+            obj.type = STRING;
+            obj.strValue = instobj.strValue;
+        }
+        else if (instobj.type == INT)
+        {
+            obj.type = INT;
+            obj.strValue = instobj.intValue;
+        }
 
+        break;
+    }
     case DUP:
     {
-        int topValue = Stack[registers->sp++];
-        Stack[registers->sp] = topValue;
+        Object topValue = OPstack->top();
+        OPstack->push(topValue);
         break;
     }
 
@@ -104,13 +118,13 @@ void eval(StackFrame *stackFrame)
     case STORE:
     {
         int offset = instructions.at(++registers->ip).intValue;
-        stackFrame->localStack[offset] = Stack[registers->sp--];
+        stackFrame->localStack[offset] = OPstack->pop();
         break;
     }
     case LOAD:
     {
         int offset = instructions.at(++registers->ip).intValue;
-        Stack[++registers->sp] = stackFrame->localStack[offset];
+        OPstack->push(stackFrame->localStack[offset]);
         break;
     }
     case JUMP:
@@ -120,8 +134,8 @@ void eval(StackFrame *stackFrame)
     }
     case CJUMP:
     {
-        int ifJump = Stack[registers->sp--];
-        if (ifJump)
+        Object ifJump = OPstack->pop();
+        if (ifJump.intValue)
         {
             int rel = instructions.at(++registers->ip).intValue;
             registers->ip += rel;
@@ -164,7 +178,7 @@ void eval(StackFrame *stackFrame)
 
         while (argNum)
         {
-            Object obj = Stack[registers->sp--];
+            Object obj = OPstack->pop();
             newStackFrame->args.push_back(obj);
             argNum--;
         }
