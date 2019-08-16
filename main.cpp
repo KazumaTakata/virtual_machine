@@ -13,9 +13,10 @@ using namespace std;
 
 // global variables {
 
-int *stack = new int[1024];
+Object *Stack = new Object[1024];
 Registers *registers = new Registers();
-vector<int> instructions = {};
+vector<InstructionObj> instructions = {};
+StackFramePool stackframepool = StackFramePool();
 
 // vector<int> instructions = {
 //     PUSH,
@@ -42,12 +43,13 @@ int main()
     readAssemblyFile("./test/localvariable.asm");
 
     StackFrame *globalStackFrame = new StackFrame();
-    globalStackFrame->localStack = new int[1024];
+    stackframepool.activeStackFrame = globalStackFrame;
+    stackframepool.baseStackFrame = globalStackFrame;
 
     bool stop = false;
     while (!stop)
     {
-        eval(globalStackFrame);
+        eval(stackframepool.activeStackFrame);
 
         if (registers->ip >= instructions.size())
         {
